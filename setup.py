@@ -19,6 +19,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "discord.py >= 1.3.3",
+        "discord.py@git+https://github.com/Rapptz/discord.py@master",
     ],
 )

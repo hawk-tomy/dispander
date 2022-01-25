@@ -1,66 +1,39 @@
-from typing import Optional
-import os
+from __future__ import annotations
 
-import discord
-from discord import Embed
-from discord.embeds import EmptyEmbed
-from discord.ext import commands
 import re
+from os import getenv
+
+from discord import Client, Embed, Guild, Message, RawReactionActionEvent
+from discord.embeds import EmptyEmbed
+
+__all__ = ('dispand', 'delete_dispand')
+
 
 regex_discord_message_url = (
-    '(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
-    '(?P<guild>[0-9]{18})/(?P<channel>[0-9]{18})/(?P<message>[0-9]{18})(?!>)'
+    r'(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
+    r'(?P<guild>[0-9]{17,19})/(?P<channel>[0-9]{17,19})/(?P<message>[0-9]{17,19})(?!>)'
 )
 regex_extra_url = (
-    r'\?base_aid=(?P<base_author_id>[0-9]{18})'
-    '&aid=(?P<author_id>[0-9]{18})'
-    '&extra=(?P<extra_messages>(|[0-9,]+))'
+    r'\?base_aid=(?P<base_author_id>[0-9]{17,19})'
+    r'&aid=(?P<author_id>[0-9]{17,19})'
+    r'&extra=(?P<extra_messages>(|[0-9,]+))'
 )
-DELETE_REACTION_EMOJI = os.environ.get("DELETE_REACTION_EMOJI", "\U0001f5d1")
+DELETE_REACTION_EMOJI = getenv("DELETE_REACTION_EMOJI", "\U0001f5d1")
+EMBED_COLOR = int(getenv('DEFAULT_EMBED_COLOR', 0))
 
 
-class ExpandDiscordMessageUrl(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+async def delete_dispand(bot: Client, *, payload: RawReactionActionEvent):
+    if str(payload.emoji) != DELETE_REACTION_EMOJI:
+        return
+    if payload.user_id == bot.user.id:
+        return
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:
-            return
-        await dispand(message)
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        await delete_dispand(self.bot, payload=payload)
+    channel = bot.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+    await _delete_dispand(bot, message, payload.user_id)
 
 
-async def delete_dispand(bot: discord.Client,
-                         *,
-                         payload: Optional[discord.RawReactionActionEvent] = None,
-                         reaction: Optional[discord.Reaction] = None,
-                         user: Optional[discord.User] = None):
-    if payload is not None:
-        # when on_raw_reaction_add event
-        if str(payload.emoji) != DELETE_REACTION_EMOJI:
-            return
-        if payload.user_id == bot.user.id:
-            return
-
-        channel = bot.get_channel(payload.channel_id)
-        message = await channel.fetch_message(payload.message_id)
-        await _delete_dispand(bot, message, payload.user_id)
-    elif reaction is not None:
-        # when on_reaction_add event
-        if str(reaction.emoji) != DELETE_REACTION_EMOJI:
-            return
-        if user.id == bot.user.id:
-            return
-        await _delete_dispand(bot, reaction.message, user.id)
-    else:
-        raise ValueError("payload or reaction must be setted")
-
-
-async def _delete_dispand(bot: discord.Client, message: discord.Message, operator_id: int):
+async def _delete_dispand(bot: Client, message: Message, operator_id: int):
     if message.author.id != bot.user.id:
         return
     elif not message.embeds:
@@ -79,66 +52,63 @@ async def _delete_dispand(bot: discord.Client, message: discord.Message, operato
             await extra_message.delete()
 
 
-async def dispand(message):
+async def dispand(message: Message):
     messages = await extract_message(message)
     for m in messages:
-        sent_messages = []
+        embeds: list[Embed]= []
 
         if m.content or m.attachments:
-            sent_message = await message.channel.send(embed=compose_embed(m))
-            sent_messages.append(sent_message)
-        # Send the second and subsequent attachments with embed (named 'embed') respectively:
+            embeds.append(compose_embed(m))
+
         for attachment in m.attachments[1:]:
-            embed = Embed()
-            embed.set_image(
-                url=attachment.proxy_url
+            if not (attachment.content_type or '').startswith('image'):
+                continue
+
+            embeds.append(
+                Embed(color=EMBED_COLOR).set_image(url=attachment.proxy_url)
             )
-            sent_attachment_message = await message.channel.send(embed=embed)
-            sent_messages.append(sent_attachment_message)
 
-        for embed in m.embeds:
-            sent_embed_message = await message.channel.send(embed=embed)
-            sent_messages.append(sent_embed_message)
+        embeds.extend(m.embeds)
 
-        # 一番先頭のメッセージにゴミ箱のリアクションをつける
+        if not embeds:
+            continue
+
+        sent_messages: list[Message]= []
+        for i in range(0, len(embeds), 10):
+            sent_messages.append(await message.channel.send(embeds=embeds[i:i+10]))
+
         main_message = sent_messages.pop(0)
-        main_embed = main_message.embeds[0]
+        main_embeds = main_message.embeds.copy()
         await main_message.add_reaction(DELETE_REACTION_EMOJI)
-        if hasattr(main_embed.author.icon, "url"):
-            icon_url = main_embed.author.icon.url
+        if main_embeds[0].author.name:
+            main_embeds[0].set_author(
+                name=main_embeds[0].author.name,
+                icon_url=main_embeds[0].author.icon_url,
+                url=make_jump_url(message, m, sent_messages)
+            )
         else:
-            icon_url = EmptyEmbed
-        main_embed.set_author(
-            name=getattr(main_embed.author, "name", EmptyEmbed),
-            icon_url=icon_url,
-            url=make_jump_url(message, m, sent_messages)
-        )
-        await main_message.edit(embed=main_embed)
+            main_embeds.insert(0, Embed().set_author(
+                name='jump to origin message',
+                url=make_jump_url(message, m, sent_messages)
+            ))
+        await main_message.edit(embeds=main_embeds)
 
 
-async def extract_message(message):
+async def extract_message(message: Message)-> list[Message]:
     messages = []
     for ids in re.finditer(regex_discord_message_url, message.content):
         if message.guild.id != int(ids['guild']):
             continue
-        fetched_message = await fetch_message_from_id(
-            guild=message.guild,
-            channel_id=int(ids['channel']),
-            message_id=int(ids['message']),
-        )
-        messages.append(fetched_message)
+        messages.append(await fetch_message_from_id(message.guild, int(ids['channel']), int(ids['message'])))
     return messages
 
 
-async def fetch_message_from_id(guild, channel_id, message_id):
-    channel = guild.get_channel_or_thread(channel_id)
-    if channel is None:
-        channel = await bot.fetch_channel(channel_id)
-    message = await channel.fetch_message(message_id)
-    return message
+async def fetch_message_from_id(guild: Guild, channel_id: int, message_id: int)-> Message:
+    ch = await guild.fetch_channel(channel_id)
+    return await ch.fetch_message(message_id)
 
 
-def make_jump_url(base_message, dispand_message, extra_messages):
+def make_jump_url(base_message: Message, dispand_message: Message, extra_messages: list[Message])-> str:
     """
     make jump url which include more information
     :param base_message: メッセージリンクが貼られていたメッセージ
@@ -148,15 +118,15 @@ def make_jump_url(base_message, dispand_message, extra_messages):
     """
     # base_aid: メッセージリンクで飛べる最初のメッセージの送信者のid
     # aid: メッセージリンクを送信したユーザーのid
-    return "{0.jump_url}?base_aid={1.id}&aid={2.id}&extra={3}".format(
-        dispand_message,
-        dispand_message.author,
-        base_message.author,
-        ",".join([str(i.id) for i in extra_messages])
+    return (
+        f'{dispand_message.jump_url}'
+        f'?base_aid={dispand_message.author.id}'
+        f'&aid={base_message.author.id}'
+        f'&extra={",".join(str(msg.id) for msg in extra_messages)}'
     )
 
 
-def from_jump_url(url):
+def from_jump_url(url: str)-> dict[str, str]:
     """
     メッセージリンクから情報を取得します。
     :param url: メッセージリンク
@@ -171,26 +141,26 @@ def from_jump_url(url):
     }
 
 
-def compose_embed(message):
+def compose_embed(message: Message)-> Embed:
+    if message.author.avatar:
+        avatar_url = message.author.display_avatar.url
+    else:
+        avatar_url = EmptyEmbed
+    if message.guild.icon:
+        icon_url = message.guild.icon.url
+    else:
+        icon_url = EmptyEmbed
     embed = Embed(
-        description=message.content,
-        timestamp=message.created_at,
+        description=message.content, timestamp=message.created_at
+    ).set_author(
+        name=message.author.display_name, icon_url=avatar_url, url=message.jump_url
+    ).set_footer(
+        text=message.channel.name, icon_url=icon_url
     )
-    embed.set_author(
-        name=message.author.display_name,
-        icon_url=message.author.avatar.url,
-        url=message.jump_url
-    )
-    embed.set_footer(
-        text=message.channel.name,
-        icon_url=message.guild.icon.url,
-    )
-    if message.attachments and message.attachments[0].proxy_url:
-        embed.set_image(
-            url=message.attachments[0].proxy_url
-        )
+    if (
+        message.attachments
+        and (attachment:=message.attachments[0]).proxy_url
+        and (attachment.content_type or '').startswith('image')
+    ):
+        embed.set_image(url=attachment.proxy_url)
     return embed
-
-
-def setup(bot):
-    bot.add_cog(ExpandDiscordMessageUrl(bot))

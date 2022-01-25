@@ -1,11 +1,9 @@
 # dispander (Discord Message URL Expander)
-DiscordのメッセージURLを検知して展開する機能を追加する discord.py Bot拡張用ライブラリ
-
-<img width="789" src="https://user-images.githubusercontent.com/11159059/70523586-bc7b8280-1b86-11ea-87f3-aa3dade6ba51.png">
+DiscordのメッセージURLを検知して展開する機能を追加する、discord.py Bot拡張用ライブラリのforkです。
 
 # 使い方
 
-`python3 -m pip install dispander`
+`python3 -m pip install dispander@git+https://github.com/hawk-tomy/dispander`
 
 ## extensionとして使用する場合
 
@@ -23,8 +21,7 @@ bot.run(token)
 
 on_message内のどこかで実行してください。
 
-展開したメッセージを消去する機能を使用するには`on_reaction_add`イベントもしくは`on_raw_reaction_add`イベントのどちらかでdelete_dispand関数を実行してください。
-on_raw_reaction_addの場合はキーワード引数`payload`にRawReactionActionEventを、on_reaction_addの場合はキーワード引数`user`にUser、`reaction`にReactionを指定して下さい。
+展開したメッセージを消去する機能を使用するには`on_raw_reaction_add`イベントでキーワード引数`payload`にRawReactionActionEventを指定してdelete_dispand関数を実行してください。
 
 消去の際のリアクションを変更したい場合は環境変数`DELETE_REACTION_EMOJI`に絵文字を設定してください。
 

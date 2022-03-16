@@ -9,7 +9,7 @@ setuptools.setup(
     author="1ntegrale9",
     maintainer="hawk_tomy",
     author_email="1ntegrale9uation@gmail.com",
-    maintainer_email="hawk201000211101@gmail.com",
+    maintainer_email="67221751+hawk-tomy@users.noreply.github.com",
     description="Discord Message URL Expander",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -21,6 +21,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "discord.py@git+https://github.com/hawk-tomy/discord.py",
+        "discord.py@git+https://github.com/Rapptz/discord.py.git",
     ],
 )

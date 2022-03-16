@@ -4,7 +4,6 @@ import re
 from os import getenv
 
 from discord import Client, Embed, Guild, Message, RawReactionActionEvent
-from discord.embeds import EmptyEmbed
 
 __all__ = ('dispand', 'delete_dispand')
 
@@ -145,11 +144,11 @@ def compose_embed(message: Message)-> Embed:
     if message.author.avatar:
         avatar_url = message.author.display_avatar.url
     else:
-        avatar_url = EmptyEmbed
+        avatar_url = None
     if message.guild.icon:
         icon_url = message.guild.icon.url
     else:
-        icon_url = EmptyEmbed
+        icon_url = None
     embed = Embed(
         description=message.content, timestamp=message.created_at
     ).set_author(

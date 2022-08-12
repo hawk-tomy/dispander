@@ -21,6 +21,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "git+https://github.com/Rapptz/discord.py@a106201",
+        "discord.py@git+https://github.com/Rapptz/discord.py@a106201",
     ],
 )

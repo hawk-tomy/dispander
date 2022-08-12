@@ -10,13 +10,13 @@ __all__ = ('dispand', 'delete_dispand')
 
 
 regex_discord_message_url = (
-    r'(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
-    r'(?P<guild>[0-9]{17,19})/(?P<channel>[0-9]{17,19})/(?P<message>[0-9]{17,19})(?!>)'
+    '(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
+    '(?P<guild>[0-9]{17,20})/(?P<channel>[0-9]{17,20})/(?P<message>[0-9]{17,20})(?!>)'
 )
 regex_extra_url = (
-    r'\?base_aid=(?P<base_author_id>[0-9]{17,19})'
-    r'&aid=(?P<author_id>[0-9]{17,19})'
-    r'&extra=(?P<extra_messages>(|[0-9,]+))'
+    r'\?base_aid=(?P<base_author_id>[0-9]{17,20})'
+    '&aid=(?P<author_id>[0-9]{17,20})'
+    '&extra=(?P<extra_messages>(|[0-9,]+))'
 )
 DELETE_REACTION_EMOJI = getenv("DELETE_REACTION_EMOJI", "\U0001f5d1")
 EMBED_COLOR = int(getenv('DEFAULT_EMBED_COLOR', 0))

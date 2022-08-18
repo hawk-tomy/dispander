@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "dispander"
-version = "0.5.2a"
+version = "0.5.3"
 description = "Discord Message URL Expander"
 authors = ["1ntegrale9 <1ntegrale9uation@gmail.com>"]
 license = "MIT License"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-"discord.py" = {git = "https://github.com/Rapptz/discord.py", rev = "a106201"}
+python = "~3.9"
+"discord.py" = "~2.0.0"

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 
 setuptools.setup(
     name="dispander",
-    version="0.5.2",
+    version="0.5.3",
     author="1ntegrale9",
     maintainer="hawk_tomy",
     author_email="1ntegrale9uation@gmail.com",
@@ -21,6 +21,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        "discord.py@git+https://github.com/Rapptz/discord.py@a106201",
+        "discord.py~=2.0.0",
     ],
 )

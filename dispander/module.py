@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from discord import Client, Colour, Embed, Guild, Message, RawReactionActionEvent, abc
 
-__all__ = ('dispand', 'delete_dispand')
+__all__ = ('dispand', 'delete_dispand', 'RegexDiscordMessageUrl')
 
 if TYPE_CHECKING:
     from typing import Union
@@ -15,15 +15,17 @@ if TYPE_CHECKING:
     from discord import Emoji, PartialEmoji
 
 
-regex_discord_message_url = (
-    '(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
-    '(?P<guild>[0-9]{17,20})/(?P<channel>[0-9]{17,20})/(?P<message>[0-9]{17,20})(?!>)'
+regex_base_url = (
+    r'(?!<)https://(ptb.|canary.)?discord(app)?.com/channels/'
+    r'(?P<guild>[0-9]{17,20})/(?P<channel>[0-9]{17,20})/(?P<message>[0-9]{17,20})(?!>)'
 )
 regex_extra_url = (
     r'\?base_aid=(?P<base_author_id>[0-9]{17,20})'
-    '&aid=(?P<author_id>[0-9]{17,20})'
-    '&extra=(?P<extra_messages>(|[0-9,]+))'
+    r'&aid=(?P<author_id>[0-9]{17,20})'
+    r'&extra=(?P<extra_messages>(|[0-9,]+))'
 )
+RegexDiscordMessageUrl = re.compile(regex_base_url)
+RegexExtraUrl = re.compile(regex_base_url + regex_extra_url)
 
 
 @dataclass()
@@ -150,7 +152,7 @@ class Dispander:
     async def extract_message(self, message: Message)-> list[Message]:
         messages: list[Message]= []
         assert message.guild is not None
-        for ids in re.finditer(regex_discord_message_url, message.content):
+        for ids in RegexDiscordMessageUrl.finditer(message.content):
             if message.guild.id != int(ids['guild']):
                 continue
             messages.append(
@@ -186,7 +188,7 @@ class Dispander:
         :param url: メッセージリンク
         :return: dict
         """
-        base_url_match = re.match(regex_discord_message_url + regex_extra_url, url)
+        base_url_match = RegexExtraUrl.match(url)
         assert base_url_match is not None
         data = base_url_match.groupdict()
         return FromJumpUrl(

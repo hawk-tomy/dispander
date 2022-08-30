@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dispander"
-version = "0.6"
+version = "0.6.1"
 description = "Discord Message URL Expander"
 authors = ["1ntegrale9 <1ntegrale9uation@gmail.com>"]
 license = "MIT License"

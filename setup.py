@@ -5,7 +5,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 
 setuptools.setup(
     name="dispander",
-    version="0.6",
+    version="0.6.1",
     author="1ntegrale9",
     maintainer="hawk_tomy",
     author_email="1ntegrale9uation@gmail.com",

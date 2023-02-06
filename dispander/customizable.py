@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from inspect import isawaitable as isawaitable_
 from typing import TYPE_CHECKING, NamedTuple
 
 from discord import DMChannel, GroupChannel, PartialMessageable, TextChannel, Thread, VoiceChannel
 from discord.utils import maybe_coroutine
 
-from .module import Dispander
+from .core import Dispander
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -15,7 +14,7 @@ if TYPE_CHECKING:
 
     from discord import Asset, Attachment, Client, Colour, Emoji, Guild, Member, Message, PartialEmoji, User
     from discord.mixins import Hashable
-    from typing_extensions import Concatenate, ParamSpec, Self, StrictTypeGuard
+    from typing_extensions import Concatenate, ParamSpec, Self
 
     P = ParamSpec('P')
     Id = TypeVar('Id', bound=Hashable)
@@ -129,24 +128,15 @@ def setter(target: Any, name: str, value: Any):
         setattr(target, name, value)
 
 
-def isawaitable(value: Union[Any, Awaitable[T]])-> StrictTypeGuard[Awaitable[T]]:
-    return isawaitable_(value)
-
-
 def cache(
-    func: Union[
-        Callable[Concatenate[Id, P], T],
-        Callable[Concatenate[Id, P], Awaitable[T]]
-    ]
+    func: Callable[Concatenate[Id, P], Union[Awaitable[T], T]]
 )-> Callable[Concatenate[Id, P], Awaitable[T]]:
     cache: dict[int, T]= {}
 
     async def inner(value: Id, *args: P.args, **kwargs: P.kwargs):
         if value.id in cache:
             return cache[value.id]
-        returned = func(value, *args, **kwargs)
-        if isawaitable(returned):
-            returned = await returned
+        returned = await maybe_coroutine(func, value, *args, **kwargs)
         cache[value.id] = returned
         return returned
 

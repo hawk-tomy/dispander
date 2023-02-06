@@ -3,12 +3,10 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-from .module import Dispander
-
-__all__ = ('ExpandDiscordMessageUrl',)
+from .core import Dispander
 
 
-class ExpandDiscordMessageUrl(commands.Cog):
+class ExpandDiscordMessageFromUrlCog(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.dispander = Dispander(bot)
 

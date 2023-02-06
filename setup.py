@@ -5,7 +5,7 @@ with open("README.md", "r", encoding='utf8') as fh:
 
 setuptools.setup(
     name="dispander",
-    version="0.6.1",
+    version="1.0.0",
     author="1ntegrale9",
     maintainer="hawk_tomy",
     author_email="1ntegrale9uation@gmail.com",
@@ -16,7 +16,9 @@ setuptools.setup(
     url="https://github.com/hawk-tomy/dispander",
     packages=setuptools.find_packages(),
     classifiers=[
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

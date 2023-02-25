@@ -7,7 +7,7 @@ license = "MIT License"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-"discord.py" = "~2.0.0"
+"discord.py" = "~2.0"
 
 [tool.poetry.dev-dependencies]
 pyright = "^1.1.267"

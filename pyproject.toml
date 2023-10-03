@@ -1,13 +1,23 @@
-[tool.poetry]
+[project]
 name = "dispander"
 version = "1.0.0"
 description = "Discord Message URL Expander"
-authors = ["1ntegrale9 <1ntegrale9uation@gmail.com>"]
-license = "MIT License"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT License" }
+authors = [{ name = "1ntegrale9", email = "1ntegrale9uation@gmail.com" }]
+maintainers = [
+    { name = "hawk_tomy", email = "67221751+hawk-tomy@users.noreply.github.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = ["discord.py ~= 2.0"]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-"discord.py" = ">2.0"
-
-[tool.poetry.dev-dependencies]
-pyright = "^1.1.267"
+[project.urls]
+repository = "https://github.com/hawk-tomy/dispander"

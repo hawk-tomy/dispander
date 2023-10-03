@@ -5,14 +5,13 @@ from dataclasses import dataclass
 from os import getenv
 from typing import TYPE_CHECKING
 
-from discord import Client, Colour, Embed, Guild, Message, RawReactionActionEvent, abc
+from discord import Client, Embed
+from discord.abc import Messageable
 
 __all__ = ('Dispander', 'RegexDiscordMessageUrl')
 
 if TYPE_CHECKING:
-    from typing import Union
-
-    from discord import Emoji, PartialEmoji
+    from discord import Colour, Emoji, Guild, Message, PartialEmoji, RawReactionActionEvent
 
 
 regex_base_url = (
@@ -36,11 +35,12 @@ class FromJumpUrl:
 
 
 class Dispander:
+
     def __init__(
         self,
         bot: Client,
-        delete_reaction_emoji: Union[None, str, Emoji, PartialEmoji] = None,
-        embed_color: Union[None, int, Colour] = None
+        delete_reaction_emoji: None | str | Emoji | PartialEmoji = None,
+        embed_color: None | int | Colour = None,
     ):
         self.bot = bot
         self.delete_reaction_emoji = delete_reaction_emoji
@@ -57,21 +57,21 @@ class Dispander:
         self.__bot = bot
 
     @property
-    def delete_reaction_emoji(self) -> Union[str, Emoji, PartialEmoji]:
+    def delete_reaction_emoji(self) -> str | Emoji | PartialEmoji:
         return self.__delete_reaction_emoji
 
     @delete_reaction_emoji.setter
-    def delete_reaction_emoji(self, emoji: Union[str, Emoji, PartialEmoji, None]):
+    def delete_reaction_emoji(self, emoji: str | Emoji | PartialEmoji | None):
         if emoji is None:
-            emoji = getenv("DELETE_REACTION_EMOJI", "\U0001f5d1")
+            emoji = getenv('DELETE_REACTION_EMOJI', '\U0001f5d1')
         self.__delete_reaction_emoji = emoji
 
     @property
-    def embed_color(self) -> Union[int, Colour]:
+    def embed_color(self) -> int | Colour:
         return self.__embed_color
 
     @embed_color.setter
-    def embed_color(self, color: Union[None, int, Colour]):
+    def embed_color(self, color: None | int | Colour):
         if color is None:
             color = int(getenv('DEFAULT_EMBED_COLOR', 0))
         self.__embed_color = color
@@ -89,8 +89,7 @@ class Dispander:
                     continue  # CUSTOMIZE: attachment.content_type
 
                 embeds.append(
-                    Embed(color=self.embed_color).set_image(
-                        url=attachment.proxy_url)
+                    Embed(color=self.embed_color).set_image(url=attachment.proxy_url)
                     # CUSTOMIZE: attachment.proxy_url
                 )
 
@@ -101,7 +100,9 @@ class Dispander:
 
             sent_messages: list[Message] = []
             for i in range(0, len(embeds), 10):
-                sent_messages.append(await message.channel.send(embeds=embeds[i:i+10]))
+                sent_messages.append(
+                    await message.channel.send(embeds=embeds[i : i + 10])
+                )
 
             main_message = sent_messages.pop(0)
             main_embeds = main_message.embeds.copy()
@@ -110,13 +111,16 @@ class Dispander:
                 main_embeds[0].set_author(
                     name=main_embeds[0].author.name,
                     icon_url=main_embeds[0].author.icon_url,
-                    url=self.make_jump_url(message, msg, sent_messages)
+                    url=self.make_jump_url(message, msg, sent_messages),
                 )
             else:
-                main_embeds.insert(0, Embed(color=self.embed_color).set_author(
-                    name='jump to origin message',
-                    url=self.make_jump_url(message, msg, sent_messages)
-                ))
+                main_embeds.insert(
+                    0,
+                    Embed(color=self.embed_color).set_author(
+                        name='jump to origin message',
+                        url=self.make_jump_url(message, msg, sent_messages),
+                    ),
+                )
             await main_message.edit(embeds=main_embeds)
 
     async def delete_dispand(self, *, payload: RawReactionActionEvent) -> None:
@@ -130,7 +134,7 @@ class Dispander:
         channel = self.bot.get_channel(payload.channel_id)
         if channel is None:
             channel = await self.bot.fetch_channel(payload.channel_id)
-        assert isinstance(channel, abc.Messageable)
+        assert isinstance(channel, Messageable)
 
         message = await channel.fetch_message(payload.message_id)
         if message.author.id != self.bot.user.id:
@@ -148,8 +152,11 @@ class Dispander:
 
         await message.delete()
         for message_id in data.extra_messages:
-            extra_message = await message.channel.fetch_message(message_id)
-            if extra_message is not None:
+            try:
+                extra_message = await message.channel.fetch_message(message_id)
+            except Exception:
+                pass
+            else:
                 await extra_message.delete()
 
     async def extract_message(self, message: Message) -> list[Message]:
@@ -158,21 +165,30 @@ class Dispander:
         for ids in RegexDiscordMessageUrl.finditer(message.content):
             if message.guild.id != int(ids['guild']):
                 continue
-            messages.append(await self.fetch_message_from_id(
-                guild=message.guild,
-                channel_id=int(ids['channel']),
-                message_id=int(ids['message']),
-            ))
+            messages.append(
+                await self.fetch_message_from_id(
+                    guild=message.guild,
+                    channel_id=int(ids['channel']),
+                    message_id=int(ids['message']),
+                )
+            )
         return messages
 
-    async def fetch_message_from_id(self, guild: Guild, channel_id: int, message_id: int) -> Message:
+    async def fetch_message_from_id(
+        self, guild: Guild, channel_id: int, message_id: int
+    ) -> Message:
         ch = guild.get_channel_or_thread(channel_id)
         if ch is None:
             ch = await guild.fetch_channel(channel_id)
-        assert isinstance(ch, abc.Messageable)
+        assert isinstance(ch, Messageable)
         return await ch.fetch_message(message_id)
 
-    def make_jump_url(self, base_message: Message, dispand_message: Message, extra_messages: list[Message]) -> str:
+    def make_jump_url(
+        self,
+        base_message: Message,
+        dispand_message: Message,
+        extra_messages: list[Message],
+    ) -> str:
         """
         make jump url which include more information
         :param base_message: メッセージリンクが貼られていたメッセージ
@@ -199,13 +215,17 @@ class Dispander:
         assert base_url_match is not None
         data = base_url_match.groupdict()
         return FromJumpUrl(
-            base_author_id=int(data["base_author_id"]),
-            author_id=int(data["author_id"]),
-            extra_messages=[int(_id) for _id in data["extra_messages"].split(",")] if data["extra_messages"] else []
+            base_author_id=int(data['base_author_id']),
+            author_id=int(data['author_id']),
+            extra_messages=(
+                [int(_id) for _id in data['extra_messages'].split(',')]
+                if data['extra_messages']
+                else []
+            ),
         )
 
     def compose_embed(self, message: Message) -> Embed:
-        assert message.guild
+        assert message.guild is not None
         if message.guild.icon:
             icon_url = message.guild.icon.url  # CUSTOMIZE: message.guild.icon
         else:
@@ -221,7 +241,7 @@ class Dispander:
         ).set_footer(
             text=message.channel.name,  # type: ignore # CUSTOMIZE: message.channel.name
             icon_url=icon_url
-        )
+        )  # fmt: skip
         if (
             message.attachments
             and (attachment := message.attachments[0]).proxy_url

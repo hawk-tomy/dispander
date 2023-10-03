@@ -7,6 +7,7 @@ from .core import Dispander
 
 
 class ExpandDiscordMessageFromUrlCog(commands.Cog):
+
     def __init__(self, bot: commands.Bot):
         self.dispander = Dispander(bot)
 

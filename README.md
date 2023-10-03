@@ -89,7 +89,7 @@ Message, Guild, Channel, Attachmentをそれぞれ独立して変更可能です
   - icon url
 - channel
   - name
-- attachement
+- attachment
   - name
   - url(proxy url)
 
@@ -112,7 +112,7 @@ async def message_customizer(msg: discord.Message)-> MessageCustomized:
 
 async def guild_customizer(guild: discord.Guild)-> GuildCustomized:
     return GuildCustomized(icon_url=None)
-    # if you set `None`, dispander not set for dispanded Embed.
+    # if you set `None`, dispander not set for dispand Embed.
 
 async def channel_customizer(channel: GuildMessageableChannel)-> ChannelCustomized:
     return ChannelCustomized()
@@ -131,7 +131,7 @@ class Bot(discord.Client):
         ).set_channel(
             channel_customizer
         )# .set_author()
-        # if not call set_*, Customizer return default customizer thet does nothing.
+        # if not call set_*, Customizer return default customizer that does nothing.
 
         self.dispander = CustomizableDispander(self, customizer)
 

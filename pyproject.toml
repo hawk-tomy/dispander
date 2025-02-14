@@ -6,9 +6,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT License" }
 authors = [{ name = "1ntegrale9", email = "1ntegrale9uation@gmail.com" }]
-maintainers = [
-    { name = "hawk_tomy", email = "67221751+hawk-tomy@users.noreply.github.com" },
-]
+maintainers = [{ name = "hawk_tomy", email = "me@mail.hawk-tomy.dev" }]
 classifiers = [
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",

@@ -15,7 +15,137 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = ["discord.py ~= 2.0"]
+dependencies = ["discord.py >= 2.0,<3"]
 
 [project.urls]
 repository = "https://github.com/hawk-tomy/dispander"
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.352",
+    "mypy>=1.8.0",
+    "ruff>=0.3",
+    # .
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+include = ["discord"]
+ignore = ["example"]
+
+reportGeneralTypeIssues = "warning"
+
+reportImportCycles = "none"
+
+useLibraryCodeForTypes = true
+deprecateTypingAliases = true
+
+strictListInference = true
+strictDictionaryInference = true
+
+reportFunctionMemberAccess = false
+reportIncompatibleMethodOverride = false
+reportMissingTypeStubs = false
+reportPrivateUsage = false
+reportUnusedImport = false
+reportUnnecessaryIsInstance = false
+
+[tool.mypy]
+explicit_package_bases = true
+strict = true
+
+show_error_context = true
+show_column_numbers = true
+
+allow_redefinition = true
+
+warn_unused_ignores = false
+warn_no_return = false
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+exclude = ["venv", ".venv"]
+fix = true
+
+[tool.ruff.lint]
+select = [
+    "ALL",
+    # .
+]
+ignore = [
+    # Ignore missing self/cls annotation
+    "ANN1",
+    # Ignore missing docstring in public module
+    "D100",
+    # Ignore missing docstring in public package
+    "D104",
+    # Ignore missing docstring in __init__
+    "D107",
+    # Allow use string/f-string/str.format
+    "EM",
+    # Allow source code like comment.
+    "ERA",
+    # Allow use boolean type hint in positional argument
+    "FBT",
+    # Allow private member access (e.g. _foo)
+    "SLF001",
+    # Allow use constant variable
+    "PLR2004",
+    # Allow use assert(only type check)
+    "S101",
+    # Ignore long message in raise
+    "TRY003",
+
+    # ruff recomended avoid rules if use ruff formatter
+    "D206",
+    "D300",
+    "E111",
+    "E114",
+    "E117",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191",
+    "COM812",
+    "COM819",
+    "ISC001",
+    "ISC002",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = [
+    # Ignore any import error in __init__.py
+    # Ignore unused
+    "F401",
+    # Ignore import star
+    "F403",
+    # Ignore import star and use
+    "F405",
+    # .
+]
+"example/*.py" = [
+    # Ignore missing docstring in example
+    "D1",
+    # Allow use non cryptographic random
+    "S311",
+    # Allow use print() in example
+    "T201",
+    # Allow namerspace package(examples are not package)
+    "INP",
+    # .
+]
+
+[tool.ruff.lint.flake8-quotes]
+inline-quotes = "single"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
+
+[tool.ruff.format]
+quote-style = "single"

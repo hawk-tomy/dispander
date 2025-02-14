@@ -1,6 +1,6 @@
 [project]
 name = "dispander"
-version = "0.6.0a1"
+version = "0.6.0a2"
 description = "Discord Message URL Expander"
 readme = "README.md"
 requires-python = ">=3.9"

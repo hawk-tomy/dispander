@@ -16,39 +16,27 @@ from discord.ext import commands
 
 class Bot(commands.bot):
     async def setup_hook(self):
-        await bot.load_extension('dispander')
+        await self.load_extension('dispander')
 
 bot = Bot(command_prefix='/', intents=Intents.all())
 bot.run(token)
 ```
 
-### 関数として使用する場合
+### Cogとして使用する場合
 
-on_message内のどこかで実行してください。
-
-展開したメッセージを消去する機能を使用するには`on_raw_reaction_add`イベントでキーワード引数`payload`にRawReactionActionEventを指定してdelete_dispand関数を実行してください。
-
-消去の際のリアクションを変更したい場合は環境変数`DELETE_REACTION_EMOJI`に絵文字を設定してください。
+`dispander.ExpandDiscordMessageFromUrlCog`を読み込んでください。
 
 ```python
-import discord
-from dispander import dispand, delete_dispand
+from discord import Intents
+from discord.ext import commands
+from dispander import ExpandDiscordMessageFromUrlCog
 
-client = discord.Client(intents=discord.Intents.all())
+class Bot(commands.bot):
+    async def setup_hook(self):
+        await self.add_cog(ExpandDiscordMessageFromUrlCog(self))
 
-@client.event
-async def on_message(message):
-    if message.author.bot:
-        return
-    await dispand(message)
-
-
-@client.event
-async def on_raw_reaction_add(payload):
-    await delete_dispand(client, payload=payload)
-
-
-client.run(token)
+bot = Bot(command_prefix='/', intents=Intents.all())
+bot.run(token)
 ```
 
 ### Dispanderクラスを直接用いる場合

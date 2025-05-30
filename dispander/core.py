@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 import sys
 from dataclasses import dataclass
+from logging import getLogger
 from os import getenv
 from typing import TYPE_CHECKING
 
@@ -45,6 +46,9 @@ REGEX_EXTRA_URL_LITERAL = (
 )
 REGEX_DISCORD_MESSAGE_URL = re.compile(r'(?<!<)' + REGEX_BASE_URL_LITERAL + r'(?!>)')
 REGEX_EXTRA_URL = re.compile(REGEX_BASE_URL_LITERAL + REGEX_EXTRA_URL_LITERAL)
+
+
+logger = getLogger(__name__)
 
 
 @dataclass()
@@ -102,6 +106,7 @@ class Dispander:
         messages = await self._extract_message(message)
         for msg in messages:
             embeds: list[Embed] = []
+            logger.debug('expanding message: %s', msg.jump_url)
 
             if msg.content or msg.attachments:
                 embeds.append(self._compose_embed(msg))
@@ -118,9 +123,11 @@ class Dispander:
             embeds.extend(msg.embeds)
 
             if not embeds:
+                logger.debug('no need send dispanded message')
                 continue
 
             sent_messages: list[Message] = [await message.channel.send(embeds=e) for e in batched(embeds, 10)]
+            logger.debug('sent %d messages, first one is: %s', len(sent_messages), sent_messages[0].jump_url)
 
             main_message = sent_messages.pop(0)
             main_embeds = main_message.embeds.copy()
@@ -137,7 +144,9 @@ class Dispander:
                     0,
                     Embed(color=self.embed_color).set_author(name='jump to origin message', url=jump_url),
                 )
+            logger.debug('set jump url to main embed: %s', jump_url)
             await main_message.edit(embeds=main_embeds)
+            logger.debug('set jump url to main embed')
 
     async def delete_dispand(self, *, payload: RawReactionActionEvent) -> None:
         """Deletes the expanded messages when the delete reaction emoji is used."""

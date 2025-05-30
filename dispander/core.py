@@ -125,19 +125,17 @@ class Dispander:
             main_message = sent_messages.pop(0)
             main_embeds = main_message.embeds.copy()
             await main_message.add_reaction(self.delete_reaction_emoji)
+            jump_url = self._make_jump_url(message, msg, sent_messages)
             if main_embeds[0].author.name:
                 main_embeds[0].set_author(
                     name=main_embeds[0].author.name,
                     icon_url=main_embeds[0].author.icon_url,
-                    url=self._make_jump_url(message, msg, sent_messages),
+                    url=jump_url,
                 )
             else:
                 main_embeds.insert(
                     0,
-                    Embed(color=self.embed_color).set_author(
-                        name='jump to origin message',
-                        url=self._make_jump_url(message, msg, sent_messages),
-                    ),
+                    Embed(color=self.embed_color).set_author(name='jump to origin message', url=jump_url),
                 )
             await main_message.edit(embeds=main_embeds)
 
@@ -199,9 +197,19 @@ class Dispander:
         return await ch.fetch_message(message_id)
 
     def _make_jump_url(self, base_message: Message, dispand_message: Message, extra_messages: list[Message]) -> str:
+        base_aid = dispand_message.author.id
+        if (
+            self.bot.user is not None
+            and dispand_message.author.id == self.bot.user.id
+            and dispand_message.embeds
+            and dispand_message.embeds[0].author.url is not None
+            and (match := REGEX_EXTRA_URL.match(dispand_message.embeds[0].author.url)) is not None
+        ):
+            # if the base message is dispanded message, we should use same base_aid.
+            base_aid = int(match.group('base_author_id'))
         return (
             f'{dispand_message.jump_url}'
-            f'?base_aid={dispand_message.author.id}'
+            f'?base_aid={base_aid}'
             f'&aid={base_message.author.id}'
             f'&extra={",".join(str(msg.id) for msg in extra_messages)}'
         )

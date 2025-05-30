@@ -34,7 +34,7 @@ else:
             yield tuple(batch)
 
 
-REGEX_BASE_URL = (
+REGEX_BASE_URL_LITERAL = (
     r'https://(ptb.|canary.)?discord(app)?.com/channels/'
     r'(?P<guild>[0-9]{17,20})/(?P<channel>[0-9]{17,20})/(?P<message>[0-9]{17,20})'
 )
@@ -43,8 +43,8 @@ REGEX_EXTRA_URL_LITERAL = (
     r'&aid=(?P<author_id>[0-9]{17,20})'
     r'&extra=(?P<extra_messages>([0-9,]+)?)'
 )
-REGEX_DISCORD_MESSAGE_URL = re.compile(r'(?!<)' + REGEX_BASE_URL + r'(?!>)')
-REGEX_EXTRA_URL = re.compile(REGEX_BASE_URL + REGEX_EXTRA_URL_LITERAL)
+REGEX_DISCORD_MESSAGE_URL = re.compile(r'(?<!<)' + REGEX_BASE_URL_LITERAL + r'(?!>)')
+REGEX_EXTRA_URL = re.compile(REGEX_BASE_URL_LITERAL + REGEX_EXTRA_URL_LITERAL)
 
 
 @dataclass()
